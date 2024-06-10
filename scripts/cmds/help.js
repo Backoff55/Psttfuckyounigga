@@ -8,7 +8,7 @@ const { getPrefix } = global.utils;
 
 const { commands, aliases } = global.GoatBot;
 
-const doNotDelete = "【 𝗭𝗬𝗟𝗗𝗔𝗥𝗞 𝗔𝗜 】\n\n𝗖𝗥𝗘𝗔𝗧𝗢𝗥: 𝘒𝘠𝘓𝘌 𝘉𝘈𝘐𝘛-𝘐𝘛\n𝗙𝗕: https://www.facebook.com/itssmekylebaitit";
+const doNotDelete = "【 𝗬𝗮𝗻𝘇𝘂𝘃𝟮 𝗔𝗜 】\n\n𝗖𝗥𝗘𝗔𝗧𝗢𝗥: 𝘒𝘠𝘓𝘌 𝘉𝘈𝘐𝘛-𝘐𝘛\n𝗙𝗕: https://www.facebook.com/itssmekylebaitit";
 
 /**
 
