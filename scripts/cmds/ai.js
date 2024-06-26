@@ -1,83 +1,73 @@
-const axios = require('axios');
 const moment = require("moment-timezone");
 const manilaTime = moment.tz('Asia/Manila');
 const formattedDateTime = manilaTime.format('MMMM D, YYYY h:mm A');
 
-const Prefixes = [
-  'gpt',
-  'ai',
-  'Robot',
-  'bot',
-'Zephyrus', 
-];
+const axios = require('axios');
+
+async function fetchFromAI(url, params) {
+ try {
+ const response = await axios.get(url, { params });
+ return response.data;
+ } catch (error) {
+ console.error(error);
+ return null;
+ }
+}
+
+async function getAIResponse(input, userId, messageID) {
+ const services = [
+ { url: 'https://ai-tools.replit.app/gpt', params: { prompt: input, uid: userId } },
+ { url: 'https://openaikey-x20f.onrender.com/api', params: { prompt: input } },
+ { url: 'http://fi1.bot-hosting.net:6518/gpt', params: { query: input } },
+ { url: 'https://ai-chat-gpt-4-lite.onrender.com/api/hercai', params: { question: input } }
+ ];
+
+ let response = "𝗛𝗶 𝗜'𝗺 𝗔𝗣𝗣𝗟𝗘'𝗦 𝗔𝗜 𝗕𝗼𝘁 𝗶𝘁𝘀 𝗻𝗶𝗰𝗲 𝘁𝗼 𝗰𝗵𝗮𝘁 𝘄𝗶𝘁𝗵 𝘆𝗼𝘂 𝘁𝗼𝗱𝗮𝘆😘!";
+ let currentIndex = 0;
+
+ for (let i = 0; i < services.length; i++) {
+ const service = services[currentIndex];
+ const data = await fetchFromAI(service.url, service.params);
+ if (data && (data.gpt4 || data.reply || data.response)) {
+ response = data.gpt4 || data.reply || data.response;
+ break;
+ }
+ currentIndex = (currentIndex + 1) % services.length; // Move to the next service in the cycle
+ }
+
+ return { response, messageID };
+}
 
 module.exports = {
-  config: {
-    name: 'ai',
-    version: '2.5.4',
-    author: 'Kylepogi',//credits owner of this api
-    role: 0,
-    category: 'ai',
-    shortDescription: {
-      en: 'Asks an AI for an answer.',
-    },
-    longDescription: {
-      en: 'Asks an AI for an answer based on the user prompt.',
-    },
-    guide: {
-      en: '{pn} [prompt]',
-    },
-  },
+ config: {
+ name: 'ai',
+ author: 'Kyle',
+role: 0,
+ category: 'ai',
+ shortDescription: 'ai to ask anything',
+ },
+ onStart: async function ({ api, event, args }) {
+ const input = args.join(' ').trim();
+ if (!input) {
+ api.sendMessage(`𝗔𝗣𝗣𝗟𝗘'𝗦 𝗔𝗜\n
+━━━━━━━━━━━━━\n𝗛𝗶 𝗜'𝗺 𝗔𝗣𝗣𝗟𝗘'𝗦 𝗔𝗜 𝗕𝗼𝘁 𝗶𝘁𝘀 𝗻𝗶𝗰𝗲 𝘁𝗼 𝗰𝗵𝗮𝘁 𝘄𝗶𝘁𝗵 𝘆𝗼𝘂 𝘁𝗼𝗱𝗮𝘆😘!\n━━━━━━━━━━━━━\n`, event.threadID, event.messageID);
+ return;
+ }
 
-  langs: {
-    en: {
-      final: "𝗞𝗬𝗟𝗘'𝗦 𝗕𝗢𝗧 ",
-      loading: "🌐𝗬𝗮𝗻𝘇𝘂 𝗥𝗲𝘀𝗽𝗼𝗻𝘀𝗲: \n❍━━━━━━━━━━━━━━━━━━━━❏\n🕗 𝗭𝗘𝗣𝗛𝗬𝗥𝗨𝗦 𝗜𝗦 𝗦𝗘𝗔𝗥𝗖𝗛𝗜𝗡𝗚 𝗬𝗢𝗨𝗥 𝗤𝗨𝗘𝗦𝗧𝗜𝗢𝗡 𝗣𝗟𝗘𝗔𝗦𝗘 𝗪𝗔𝗜𝗧..........\n❍━━━━━━━━━━━━━━━━━━━━❏"
-    }
-  },
+ const { response, messageID } = await getAIResponse(input, event.senderID, event.messageID);
+ api.sendMessage(`𝗔𝗣𝗣𝗟𝗘'𝗦 𝗔𝗜\n
+━━━━━━━━━━━━━\n${response}\n━━━━━━━━━━━━━`, event.threadID, messageID);
+ },
+ onChat: async function ({ event, message }) {
+ const messageContent = event.body.trim().toLowerCase();
+ if (messageContent.startsWith("ai")) {
+ const input = messageContent.replace(/^ai\s*/, "").trim();
+ const { response, messageID } = await getAIResponse(input, event.senderID, message.messageID);
+ message.reply(`
+ 
 
-  onStart: async function () {},
-
-  onChat: async function ({ api, event, args, getLang, message }) {
-    try {
-      const prefix = Prefixes.find((p) => event.body && event.body.toLowerCase().startsWith(p));
-
-      if (!prefix) {
-        return;
-      }
-
-      const prompt = event.body.substring(prefix.length).trim();
-
-      if (prompt === '') {
-
-        await message.reply(
-          "𝗛𝗲𝗹𝗹𝗼 𝗜 𝗮𝗺 𝗬𝗮𝗻𝘇𝘂𝘃𝟮 𝗽𝗹𝗲𝗮𝘀𝗲 𝗽𝗿𝗼𝘃𝗶𝗱𝗲 𝘆𝗼𝘂𝗿 𝗾𝘂𝗲𝘀𝘁𝗶𝗼𝗻𝘀...."  
-        );
-        
-        return;
-      }
-
-      const loadingMessage = getLang("loading");
-      const loadingReply = await message.reply(loadingMessage);
-      const url = "https://hercai.onrender.com/v3/hercai"; // Replace with the new API endpoint
-      const response = await axios.get(`${url}?question=${encodeURIComponent(prompt)}`);
-
-      if (response.status !== 200 || !response.data) {
-        throw new Error('Invalid or missing response from API');
-      }
-
-      const messageText = response.data.reply.trim(); // Adjust according to the response structure of the new API
-      const userName = getLang("final");
-      const finalMsg = `${userName}\n❍━━━━━━━━━━━━━━━━━━━━❏\n${messageText}\n❍━━━━━━━━━━━━━━━━━━━━❏\n🗓️ | ⏰ 𝗗𝗔𝗧𝗘 𝗔𝗡𝗗 𝗧𝗜𝗠𝗘 :\n${formattedDateTime}\n\n👤𝗢𝗪𝗡𝗘𝗥: 𝖪𝖸𝖫𝖤 BAIT-IT\n🔗𝗙𝗕: https://www.facebook.com/itssmekylebaitit`;
-      api.editMessage(finalMsg, loadingReply.messageID);
-
-      console.log('Sent answer as a reply to user');
-    } catch (error) {
-      console.error(`Failed to get answer: ${error.message}`);
-      api.sendMessage(
-        `${error.message}.\n\nYou can try typing your question again or resending it, as there might be a bug from the server that's causing the problem. It might resolve the issue.`,
-        event.threadID
-      );
-    }
-  },
+𝗔𝗣𝗣𝗟𝗘'𝗦 𝗔𝗜\n
+━━━━━━━━━━━━━\n${response}\n━━━━━━━━━━━━━\n\n📅 | ⏳ 𝗗𝗔𝗧𝗘 𝗔𝗡𝗗 𝗧𝗜𝗠𝗘 :\n${formattedDateTime}`, messageID);
+ }
+ }
 };
